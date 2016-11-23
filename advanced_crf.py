@@ -24,18 +24,18 @@ def process_features(directory, predict_flag=False):
                 speaker = ''
                 for map_csv in csv_reader:
                     record_list = []
-                    if map_csv["speaker"] != speaker:
-                        speaker = map_csv["speaker"]
-                        record_list.append("SC")
-
                     if first_record:
-                        record_list.append("FU")
-                        speaker = map_csv["speaker"]
+                        record_list.append("1")
                         first_record = False
+                    else:
+                        record_list.append("0")
 
                     if map_csv["speaker"] != speaker:
-                        speaker = map_csv["speaker"]
-                        record_list.append("SC")
+                        record_list.append("1")
+                    else:
+                        record_list.append("0")
+
+                    speaker = map_csv["speaker"]
 
                     if map_csv["pos"]:
                         for pos in map_csv["pos"].split():
@@ -47,18 +47,19 @@ def process_features(directory, predict_flag=False):
                             zero_token, zero_tag = pos[0].split('/')
                             one_token, one_tag = pos[1].split('/')
                             record_list.append("TOKEN_" + zero_token + "|" + one_token)
-                            record_list.append("TOKEN_" + zero_tag + "|" + one_tag)
-                        # trigrams = nltk.ngrams(map_csv["pos"].split(), 3)
-                        # for pos in trigrams:
-                        #     zero_token, zero_tag = pos[0].split('/')
-                        #     one_token, one_tag = pos[1].split('/')
-                        #     two_token, two_tag = pos[2].split('/')
-                        #     record_list.append("TOKEN_" + zero_token + "|" + one_token + "|" + two_token)
-                        #     record_list.append("TOKEN_" + zero_tag + "|" + one_tag+ "|" + two_tag)
+                            record_list.append("POS_" + zero_tag + "|" + one_tag)
+                        trigrams = nltk.ngrams(map_csv["pos"].split(), 3)
+                        for pos in trigrams:
+                            zero_token, zero_tag = pos[0].split('/')
+                            one_token, one_tag = pos[1].split('/')
+                            two_token, two_tag = pos[2].split('/')
+                            record_list.append("POS_" + zero_tag + "|" + one_tag + "|" + two_tag)
+                    else:
+                        record_list.append("None")
                     if map_csv["act_tag"]:
                         file_act_tag_list.append(map_csv["act_tag"])
                     else:
-                        file_act_tag_list.append(" ")
+                        file_act_tag_list.append("None")
                     file_record_list.append(record_list)
 
             if len(file_record_list) != 0 and len(file_act_tag_list) != 0:
@@ -76,7 +77,7 @@ def train():
     trainer.set_params({
         'c1': 1.0,  # coefficient for L1 penalty
         'c2': 1e-3,  # coefficient for L2 penalty
-        'max_iterations': 50,  # stop earlier
+        'max_iterations': 60,  # stop earlier
 
         # include transitions that are possible, but not observed
         'feature.possible_transitions': True
