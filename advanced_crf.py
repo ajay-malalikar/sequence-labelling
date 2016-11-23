@@ -2,6 +2,7 @@ import sys
 import os
 import csv
 import pycrfsuite
+import nltk
 
 x_train = []
 y_train = []
@@ -10,11 +11,11 @@ map_features = {}
 
 def process_features(directory, predict_flag=False):
     for root, subdir, files in os.walk(directory):
-        # i = 0
+        i = 0
         for f in files:
-            # if i == 50:
+            # if i == 20:
             #     break
-            # i += 1
+            i += 1
             file_record_list = []
             file_act_tag_list = []
             with open(os.path.join(root, f)) as file:
@@ -41,6 +42,19 @@ def process_features(directory, predict_flag=False):
                             token, tag = pos.split("/")
                             record_list.append("TOKEN_" + token)
                             record_list.append("POS_" + tag)
+                        bigrams = nltk.ngrams(map_csv["pos"].split(), 2)
+                        for pos in bigrams:
+                            zero_token, zero_tag = pos[0].split('/')
+                            one_token, one_tag = pos[1].split('/')
+                            record_list.append("TOKEN_" + zero_token + "|" + one_token)
+                            record_list.append("TOKEN_" + zero_tag + "|" + one_tag)
+                        # trigrams = nltk.ngrams(map_csv["pos"].split(), 3)
+                        # for pos in trigrams:
+                        #     zero_token, zero_tag = pos[0].split('/')
+                        #     one_token, one_tag = pos[1].split('/')
+                        #     two_token, two_tag = pos[2].split('/')
+                        #     record_list.append("TOKEN_" + zero_token + "|" + one_token + "|" + two_token)
+                        #     record_list.append("TOKEN_" + zero_tag + "|" + one_tag+ "|" + two_tag)
                     if map_csv["act_tag"]:
                         file_act_tag_list.append(map_csv["act_tag"])
                     else:
